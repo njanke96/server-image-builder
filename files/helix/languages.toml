@@ -1,0 +1,1 @@
+use-grammars = { only = [ "bash", "caddyfile", "dockerfile", "json", "json5", "python", "toml", "yaml" ] }

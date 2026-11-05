@@ -1,0 +1,17 @@
+theme = "base16_terminal"
+
+[editor]
+true-color = true
+line-number = "relative"
+undercurl = true
+
+[editor.file-picker]
+hidden = true
+
+[editor.cursor-shape]
+insert = "bar"
+
+## general keybinds
+[keys.normal]
+"C-r" = ":toggle-option line-number absolute relative"
+"A-w" = ":toggle-option soft-wrap.enable"

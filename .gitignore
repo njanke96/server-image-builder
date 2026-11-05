@@ -1,0 +1,21 @@
+# Packer build output
+out/
+*.qcow2
+*.raw
+*.img
+
+# Logs
+build.log
+crash.log
+*.log
+
+# Packer cache
+packer_cache/
+
+# user data seed
+seed/user-data
+
+# Secrets
+*_key
+*.pem
+
