@@ -1,12 +1,12 @@
-set shell := ["bash", "-c"]
-
 build_key := "/tmp/packer-build-key"
 
+# Remove any lingering build files.
 clean:
     rm -rf out
     rm -f {{ build_key }} {{ build_key }}.pub seed/user-data
 
-build:
+# Build the server image qcow2.
+build cpus="4": clean
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -19,9 +19,10 @@ build:
     ssh-keygen -q -t ed25519 -N '' -f {{ build_key }}
     printf '#cloud-config\nssh_authorized_keys:\n  - %s\n' "$(cat {{ build_key }}.pub)" > seed/user-data
 
-    packer validate -var 'build_key={{ build_key }}' .
-    packer build -force -var 'build_key={{ build_key }}' .
+    packer validate -var 'build_key={{ build_key }}' -var 'cpus={{ cpus }}' .
+    packer build -var 'build_key={{ build_key }}' -var 'cpus={{ cpus }}' .
 
+# Run the server image in snapshot mode with qemu for local testing. Ctrl-a, x exits.
 run user="nathan" pubkey="~/.ssh/id_ed25519.pub" cpus="4" mem="4G":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -49,5 +50,6 @@ run user="nathan" pubkey="~/.ssh/id_ed25519.pub" cpus="4" mem="4G":
         -nic user,model=virtio-net-pci,hostfwd=tcp::2222-:22,hostfwd=tcp::9090-:9090 \
         -nographic
 
+# Connect over ssh to a local image running in qemu.
 connect user="nathan":
     ssh -p 2222 -o UserKnownHostsFile=/dev/null "{{ user }}@localhost"

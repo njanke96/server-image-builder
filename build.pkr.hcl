@@ -41,6 +41,7 @@ locals {
     "bat",
     "cockpit",
     "podman",
+    "podman-compose",
     "cockpit-podman",
     "cockpit-storaged",
     "git",
@@ -102,12 +103,17 @@ build {
       "sudo -u \"$INIT_USER\" -H env GIT_TERMINAL_PROMPT=0 hx --grammar fetch || true",
       "sudo -u \"$INIT_USER\" -H hx --grammar build || true",
 
+      # copy helix config and compiled grammars for root (sudo hx)
+      "install -d -o root -g root /root/.config/helix",
+      "cp -r /home/$INIT_USER/.config/helix/* /root/.config/helix/",
+      "chown -R root:root /root/.config",
+
       # enable services
       "systemctl enable cron.service cockpit.socket podman.socket",
 
-      # enable user services
-      # needs dbus?
-      # "sudo -u \"$INIT_USER\" -H systemctl enable --user podman-restart.service",
+      # enable user services and linger for the init user
+      "systemctl --global enable podman-restart.service",
+      "loginctl enable-linger \"$INIT_USER\"",
 
       # passwordless sudo for default user
       "echo \"$INIT_USER ALL=(ALL) NOPASSWD:ALL\" > /etc/sudoers.d/90-$INIT_USER",
