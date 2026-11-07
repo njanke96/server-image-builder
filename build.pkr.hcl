@@ -46,6 +46,8 @@ locals {
     "cockpit-storaged",
     "git",
     "g++",
+    "unattended-upgrades",
+    "qemu-guest-agent",
   ]
 }
 
@@ -87,6 +89,11 @@ build {
       # new packages
       "apt-get install -y ${join("  ", local.packages)}",
 
+      # disable networkd and use NetworkManager (cockpit networking page needs NetworkManager, debian defaults to networkd, oh boy)
+      "systemctl mask systemd-networkd.service systemd-networkd.socket systemd-networkd-wait-online.service",
+      "systemctl enable NetworkManager.service NetworkManager-wait-online.service",
+      "printf 'system_info:\\n  network:\\n    renderers: [\"network-manager\"]\\n    activators: [\"network-manager\"]\\n' > /etc/cloud/cloud.cfg.d/99-network-manager.cfg"
+
       # user, with zsh as login shell
       "id -u \"$INIT_USER\" >/dev/null 2>&1 || useradd -m -s /usr/bin/zsh \"$INIT_USER\"",
 
@@ -119,6 +126,12 @@ build {
       "echo \"$INIT_USER ALL=(ALL) NOPASSWD:ALL\" > /etc/sudoers.d/90-$INIT_USER",
       "chmod 440 /etc/sudoers.d/90-$INIT_USER",
       "visudo -c -f /etc/sudoers.d/90-$INIT_USER",
+
+      # Unattended upgrades configuration
+      "printf 'Unattended-Upgrade::Automatic-Reboot \"true\";\\nUnattended-Upgrade::Automatic-Reboot-Time \"04:00\";\\n' > /etc/apt/apt.conf.d/52unattended-upgrades-local",
+
+      # Timezone
+      "timedatectl set-timezone America/Vancouver",
     ]
   }
 }
